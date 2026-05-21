@@ -24,11 +24,62 @@ app.get('/', (req, res) => {
 
 // 🔧 function لتنقية HTML (بشكل خفيف)
 function sanitizeHtml(html) {
-  return html
-    // نحاول نحيد بعض popups scripts (ماشي مضمون 100%)
-    .replace(/window\.open/gi, 'blocked')
-    .replace(/target="_blank"/gi, '')
-    .replace(/onClick=/gi, 'data-click=');
+
+  // حذف scripts كاملين
+  html = html.replace(
+    /<script[\s\S]*?>[\s\S]*?<\/script>/gi,
+    ''
+  );
+
+  // حذف iframes
+  html = html.replace(
+    /<iframe><\/iframe>/gi,
+    ''
+  );
+
+  // حذف popup functions
+  html = html.replace(
+    /window\.open/gi,
+    ''
+  );
+
+  // حذف redirects
+  html = html.replace(
+    /location\.href/gi,
+    ''
+  );
+
+  // حذف onclick
+  html = html.replace(
+    /onclick=/gi,
+    'data-click='
+  );
+
+  // حذف target blank
+  html = html.replace(
+    /target="_blank"/gi,
+    ''
+  );
+
+  // حذف domains مشهورة ديال ads
+  const blocked = [
+    'doubleclick.net',
+    'googlesyndication.com',
+    'adsterra',
+    'popads',
+    'onclickads',
+    'exoclick'
+  ];
+
+  blocked.forEach(domain => {
+
+    const regex = new RegExp(domain, 'gi');
+
+    html = html.replace(regex, '');
+
+  });
+
+  return html;
 }
 
 async function fetchEmbed(url) {
